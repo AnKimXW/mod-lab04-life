@@ -1,190 +1,180 @@
-using cli_life;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
-using System.Text.Json;
+using System.Linq;
 using Xunit;
+using cli_life;
 
-namespace Test
+namespace cli_life_tests
 {
-    public class UnitTest1
+    public class BoardTests
     {
         [Fact]
-        public void Test1()
+        public void Populate_ShouldRespectDensity_Low()
         {
-            var board = new Board(50, 20, 5, 0.5);
-            Assert.Equal(10, board.Columns);
-            Assert.Equal(4, board.Rows);
-            Assert.Equal(5, board.CellSize);
+            var board = new Board(10, 10, 1, 0.1);
+            int alive = board.CountAlive();
+            Assert.InRange(alive, 0, 20);
         }
-        [Fact]
-        public void Test2()
-        {
-            var board = new Board(72, 34, 1, 1);
-            int AliveCells = board.CountAliveCells();
-            Assert.Equal(board.Rows * board.Columns, AliveCells);
-        }
-        [Fact]
-        public void Test3()
-        {
-            var board = new Board(72, 34, 1, 1);
-            board.Advance();
-            int AliveCells = board.CountAliveCells();
-            Assert.Equal(0, AliveCells);
-        }
-        [Fact]
-        public void Test4()
-        {
-            var board = new Board(4, 4, 1, 0.0);
-            board.Cells[0, 1].IsAlive = true;
-            board.Cells[1, 0].IsAlive = true;
-            board.Cells[1, 2].IsAlive = true;
-            board.Cells[2, 1].IsAlive = true;
-            var patterns = board.CountPatterns();
-            Assert.True(patterns["Tub"] == 1);
-        }
-        [Fact]
-        public void Test5()
-        {
-            var board = new Board(10, 10, 1, 0.0);
-            board.Cells[0, 1].IsAlive = true;
-            board.Cells[1, 0].IsAlive = true;
-            board.Cells[1, 2].IsAlive = true;
-            board.Cells[2, 1].IsAlive = true;
 
-            board.Cells[3, 3].IsAlive = true;
-            board.Cells[3, 4].IsAlive = true;
-            board.Cells[4, 3].IsAlive = true;
-            board.Cells[4, 4].IsAlive = true;
+        [Fact]
+        public void Populate_ShouldRespectDensity_High()
+        {
+            var board = new Board(10, 10, 1, 0.9);
+            int alive = board.CountAlive();
+            Assert.InRange(alive, 80, 100);
+        }
 
-            var patterns = board.CountPatterns();
-            int count = patterns.Values.Sum();
-            Assert.Equal(2, count);
-
-        }
         [Fact]
-        public void Test6()
-        {
-            var board = new Board(4, 4, 1, 0.0);
-            board.Cells[0, 1].IsAlive = true;
-            board.Cells[1, 0].IsAlive = true;
-            board.Cells[1, 2].IsAlive = true;
-            board.Cells[2, 1].IsAlive = true;
-            board.Advance();
-            Assert.True(board.Cells[0, 1].IsAlive);
-            Assert.True(board.Cells[1, 0].IsAlive);
-            Assert.True(board.Cells[1, 2].IsAlive);
-            Assert.True(board.Cells[2, 1].IsAlive);
-        }
-        [Fact]
-        public void Test7()
-        {
-            var jsonFile = "{\"width\": 50,\"height\": 20,\"liveDensity\": 0.5}";
-            var config = JsonSerializer.Deserialize<Config>(jsonFile);
-            Assert.Equal(50, config.width);
-            Assert.Equal(20, config.height);
-            Assert.Equal(0.5, config.liveDensity);
-        }
-        [Fact]
-        public void Test8()
-        {
-            var board = new Board(100, 100, 1, 0.5);
-            board.Advance();
-            int AliveCells = board.CountAliveCells();
-            Assert.True(AliveCells >= 0);
-        }
-        [Fact]
-        public void Test9()
-        {
-            var board = new Board(5, 5, 1, 0);
-            board.Cells[1, 2].IsAlive = true;
-            board.Cells[2, 2].IsAlive = true;
-            board.Cells[3, 2].IsAlive = true;
-            board.Advance();
-            Assert.True(board.Cells[2, 1].IsAlive);
-            Assert.True(board.Cells[2, 2].IsAlive);
-            Assert.True(board.Cells[2, 3].IsAlive);
-        }
-        [Fact]
-        public void Test10()
-        {
-            var board = new Board(5, 5, 1, 0);
-            board.Cells[1, 1].IsAlive = true;
-            board.Cells[2, 3].IsAlive = true;
-            board.Cells[3, 1].IsAlive = true;
-            board.Advance();
-            for (int i = 0; i < 5; i++)
-            {
-                for (int j = 0; j < 5; j++)
-                {
-                    if (i == 2 && j == 2)
-                    {
-                        Assert.True(board.Cells[i, j].IsAlive);
-                    }
-                    else
-                    {
-                        Assert.False(board.Cells[i, j].IsAlive);
-                    }
-                }
-            }
-        }
-        [Fact]
-        public void Test11()
-        {
-            var board = new Board(10, 5, 1);
-            board.Randomize(0);
-            int count = board.CountAliveCells();
-            Assert.Equal(0, count);
-
-            board.Randomize(1);
-            count = board.CountAliveCells();
-            Assert.Equal(board.Columns * board.Rows, count);
-        }
-        [Fact]
-        public void Test12()
+        public void CountAlive_ShouldBeZero_WhenNoCellsAlive()
         {
             var board = new Board(10, 10, 1, 0);
-            int firstCount = board.CountAliveCells();
-            board.Randomize(0.7);
-            int secondCount = board.CountAliveCells();
-            Assert.NotEqual(firstCount, secondCount);
+            Assert.Equal(0, board.CountAlive());
         }
-        [Fact]
-        public void Test13()
-        {
-            var board = new Board(100, 100, 10);
-            foreach (var cell in board.Cells)
-            {
-                Assert.Equal(8, cell.neighbors.Count);
-            }
-        }
-        [Fact]
-        public void Test14()
-        {
-            var cell = new Cell { IsAlive = true };
-            for (int i = 0; i < 1; i++) cell.neighbors.Add(new Cell { IsAlive = true });
-            for (int i = 0; i < 7; i++) cell.neighbors.Add(new Cell { IsAlive = false });
 
-            cell.DetermineNextLiveState();
-            cell.Advance();
-            Assert.False(cell.IsAlive);
-        }
         [Fact]
-        public void Test15()
+        public void CountAlive_ShouldBeMax_WhenAllAlive()
         {
-            var board = new Board(10, 10, 1, 0.0);
-            var patterns = board.CountPatterns();
-            int count = patterns.Values.Sum();
-            Assert.Equal(0, count);
+            var board = new Board(10, 10, 1, 1);
+            Assert.Equal(100, board.CountAlive());
         }
-        [Fact]
-        public void Test16()
-        {
-            var board = new Board(30, 30, 1, 0);
-            board.Cells[5, 7].IsAlive = true;
-            board.Cells[2, 1].IsAlive = true;
-            board.Cells[11, 4].IsAlive = true;
 
-            int count = board.CountAliveCells();
-            Assert.Equal(3, count);
+        [Fact]
+        public void CountGroups_ShouldReturnZero_WhenEmpty()
+        {
+            var board = new Board(10, 10, 1, 0);
+            Assert.Equal(0, board.CountGroups());
+        }
+
+        [Fact]
+        public void CountGroups_ShouldDetectOneGroup()
+        {
+            var board = new Board(5, 5, 1, 0);
+            board.Grid[2, 2].State = true;
+            board.Grid[2, 3].State = true;
+            Assert.Equal(1, board.CountGroups());
+        }
+
+        [Fact]
+        public void CountGroups_ShouldDetectMultipleGroups()
+        {
+            var board = new Board(10, 10, 1, 0);
+            board.Grid[1, 1].State = true;
+            board.Grid[8, 8].State = true;
+            Assert.Equal(2, board.CountGroups());
+        }
+
+        [Fact]
+        public void NextGeneration_ShouldMaintainStableBlock()
+        {
+            var board = new Board(5, 5, 1, 0);
+            board.Grid[1, 1].State = true;
+            board.Grid[1, 2].State = true;
+            board.Grid[2, 1].State = true;
+            board.Grid[2, 2].State = true;
+
+            board.NextGeneration();
+
+            Assert.True(board.Grid[1, 1].State);
+            Assert.True(board.Grid[1, 2].State);
+            Assert.True(board.Grid[2, 1].State);
+            Assert.True(board.Grid[2, 2].State);
+        }
+
+        [Fact]
+        public void CountTemplates_ShouldDetectBlock()
+        {
+            var board = new Board(5, 5, 1, 0);
+            board.Grid[1, 1].State = true;
+            board.Grid[1, 2].State = true;
+            board.Grid[2, 1].State = true;
+            board.Grid[2, 2].State = true;
+
+            var templates = board.CountTemplates();
+            Assert.True(templates["Block"] >= 1);
+        }
+
+        [Fact]
+        public void CountTemplates_ShouldDetectBeehive()
+        {
+            var board = new Board(6, 6, 1, 0);
+            foreach (var (dx, dy) in new[] { (0, 1), (1, 0), (1, 2), (2, 0), (2, 2), (3, 1) })
+                board.Grid[dx, dy].State = true;
+
+            var templates = board.CountTemplates();
+            Assert.True(templates["Beehive"] >= 1);
+        }
+
+        [Fact]
+        public void CountTemplates_ShouldReturnZeroForUnknownPattern()
+        {
+            var board = new Board(5, 5, 1, 0);
+            var templates = board.CountTemplates();
+            Assert.All(templates.Values, count => Assert.Equal(0, count));
+        }
+
+        [Fact]
+        public void Cell_ShouldSurvive_WithTwoOrThreeNeighbors()
+        {
+            var cell = new Cell { State = true };
+            cell.Adjacent.AddRange(new[] {
+                new Cell { State = true },
+                new Cell { State = true },
+                new Cell { State = false }
+            });
+
+            cell.Evaluate();
+            cell.Update();
+            Assert.True(cell.State);
+        }
+
+        [Fact]
+        public void Cell_ShouldDie_WithFewerThanTwoNeighbors()
+        {
+            var cell = new Cell { State = true };
+            cell.Adjacent.Add(new Cell { State = true });
+
+            cell.Evaluate();
+            cell.Update();
+            Assert.False(cell.State);
+        }
+
+        [Fact]
+        public void Cell_ShouldBeBorn_WithExactlyThreeNeighbors()
+        {
+            var cell = new Cell { State = false };
+            cell.Adjacent.AddRange(new[] {
+                new Cell { State = true },
+                new Cell { State = true },
+                new Cell { State = true }
+            });
+
+            cell.Evaluate();
+            cell.Update();
+            Assert.True(cell.State);
+        }
+
+        [Fact]
+        public void Cell_ShouldStayDead_WithNotExactlyThreeNeighbors()
+        {
+            var cell = new Cell { State = false };
+            cell.Adjacent.AddRange(new[] {
+                new Cell { State = true },
+                new Cell { State = false },
+                new Cell { State = false }
+            });
+
+            cell.Evaluate();
+            cell.Update();
+            Assert.False(cell.State);
+        }
+
+        [Fact]
+        public void CountTemplates_ShouldDetectLoaf()
+        {
+            var board = new Board(6, 6, 1, 0);
+            foreach (var (dx, dy) in new[] { (0, 1), (1, 0), (1, 2), (2, 0), (2, 3), (3, 1), (3, 2) })
+                board.Grid[dx, dy].State = true;
+
+            var templates = board.CountTemplates();
+            Assert.True(templates["Loaf"] >= 1);
         }
     }
 }
